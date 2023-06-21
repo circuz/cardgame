@@ -31,7 +31,7 @@ class Deck:
         return self.cards.pop()
 
     def get_size(self):
-        return self.cards.len()
+        return len(self.cards)
 
     def show(self):
         print("-~=  DECK  =~-")
@@ -39,6 +39,12 @@ class Deck:
             print(f"{card.rank} of {SUITS[card.suit]}")
         print("-~= \DECK  =~-")
         return "Print OK."
+
+    def new_from_pile(self, pile):
+        print("Making new deck from pile...")
+        self.cards = pile.cards[-2::-1] # this is like flipping the pile over to make the new deck
+        pile.cards = [pile.cards[-1]]
+        return
 
 class Game():
     def __init__(self):

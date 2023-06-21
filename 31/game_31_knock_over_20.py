@@ -22,9 +22,9 @@ def strategy(self, pile):
                 worstcard = i
                 worstrank = card.rank
 
-    self.show()
+    #self.show()
     self.drop(self.hand[worstcard]) 
-    self.show()
+    #self.show()
     if max(self.tally()) > 20:
         self.knock()
     return
