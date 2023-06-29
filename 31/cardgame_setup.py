@@ -49,3 +49,7 @@ class Deck:
 class Game():
     def __init__(self):
         print("New game started.") 
+
+    def shuffle(self, list_to_shuffle):
+        random.shuffle(list_to_shuffle)
+        return

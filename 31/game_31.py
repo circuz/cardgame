@@ -2,26 +2,28 @@
 
 from cardgame_setup import Game, Deck, Card, SUITS
 import game_31_knock_immediately
+import game_31_knock_over_x
 import game_31_knock_over_20
 import game_31_knock_over_20_toss_best
 
 class Player:
-    def __init__(self, game, strategy = game_31_knock_immediately.strategy, points = 0):
+    def __init__(self, game, strategy = game_31_knock_immediately.strategy, name="Nameless soulless player", points = 0):
+        self.name = name
         self.game = game
         self.points = points
         self.hand = []
         self.strategy = strategy
 
-    def pull(self, pile = False):
-        if pile:
-            self.hand.append(self.game.pile.get())
+    def pull(self, discard = False):
+        if discard:
+            self.hand.append(self.game.discard.get())
         else:
             self.hand.append(self.game.deck.draw())
         return
     
     def drop(self, card):
         self.hand.remove(card)
-        self.game.pile.put(card)
+        self.game.discard.put(card)
         return
 
     def hand_size(self):
@@ -31,8 +33,8 @@ class Player:
         self.game.knock(self)
         return
 
-    def take_turn(self, pile):
-        self.strategy(self, pile)
+    def take_turn(self, discard):
+        self.strategy(self, discard)
         return
 
     def give_point(self):
@@ -59,7 +61,7 @@ class Player:
                 sums[card.suit] += 11
         return sums
 
-class Pile:
+class Discard:
     def __init__(self, cards = []):
         self.cards = cards
         return
@@ -69,35 +71,52 @@ class Pile:
         return
 
     def get(self):
+        if len(self.cards) == 0:
+            return None
         return self.cards.pop()
 
     def peek(self):
+        if len(self.cards) == 0:
+            return None
         return self.cards[-1]
 
     def show(self):
+        if len(self.cards) == 0:
+            print("-~= PILE =~-")
+            print("PILE EMPTY :(")
+            print("-~=\PILE =~-")
+            return "Ok"
         print("-~= PILE =~-")
         print(f"{self.cards[-1].rank} of {SUITS[self.cards[-1].suit]}")
         print("-~=\PILE =~-")
-        return "OK"
+        return "Ok"
 
 class Game_31(Game):
     def __init__(self):
         print("New game started.") 
         
-        player1 = Player(self, game_31_knock_over_20.strategy)
-        player2 = Player(self, game_31_knock_over_20.strategy)
-        self.players = [player1, player2]
+        player1_strat = lambda self, discard : game_31_knock_over_x.strategy(self, discard,20)
+        player2_strat = lambda self, discard : game_31_knock_over_x.strategy(self, discard,20)
+        player3_strat = lambda self, discard : game_31_knock_over_x.strategy(self, discard,20)
+        player4_strat = lambda self, discard : game_31_knock_over_x.strategy(self, discard,20)
+        player1 = Player(self, player1_strat, "Måns")
+        player2 = Player(self, player2_strat, "August")
+        player3 = Player(self, player3_strat, "Jesaja")
+        player4 = Player(self, player4_strat)
+        self.players = [player1, player2, player3, player4]
         
         self.setup()
         
-        while self.players[1].get_points() < 100:
+        while self.players[1].get_points() < 10000:
             self.take_turns() 
-            self.show_scores()
+        self.show_scores()
         return
 
     def setup(self):
         #print("New round started.")
         self.knocked = False
+
+        self.shuffle(self.players)
 
         for player in self.players:
             while player.hand_size() > 0:
@@ -112,46 +131,53 @@ class Game_31(Game):
                 player.pull()
             #player.show()
 
-        self.pile = Pile()
-        self.pile.put(self.deck.draw())
-        #self.pile.show()
+        self.discard = Discard()
+        self.discard.put(self.deck.draw())
+        #self.discard.show()
         return
 
 
     def show(self):
-        print(f"PILE: {self.pile.cards[-1].rank} of {SUITS[self.pile.cards[-1].suit]}")
+        print(f"PILE: {self.discard.cards[-1].rank} of {SUITS[self.discard.cards[-1].suit]}")
         print(f"Size of deck: {len(self.deck.cards)}")
+        for i, player in enumerate(self.players):
+            print(f"Player {i+1} has ", end = "")
+            for card in player.hand:
+                print(f"{card.rank} of {SUITS[card.suit]} ",end="")
+            print("")
 
     def take_turns(self):
         for player in self.players:
             if self.deck.get_size() == 0:
-                self.deck.new_from_pile(self.pile)
-                self.deck.shuffle()
+                self.end_round(tie=True)
             if self.knocked != player:
-                player.take_turn(self.pile)
+                player.take_turn(self.discard)
             else:
                 self.end_round()
                 return
-        #self.show()
+            #self.show()
         return
 
-    def end_round(self):
-        winner = None
-        tally = 0
-        for p, player in enumerate(self.players):
-            if max(player.tally()) > tally:
-                winner = p
-                tally = max(player.tally())
-        self.players[winner].give_point()
-        
+    def end_round(self, tie = False):
+        if not tie:
+            #print("Someone won!")
+            winner = None
+            tally = 0
+            for p, player in enumerate(self.players):
+                if max(player.tally()) > tally:
+                    winner = p
+                    tally = max(player.tally())
+            self.players[winner].give_point()
+        else:  
+            print("Noone won!")
         #print(f"Player {winner+1} wins with a score of {max(self.players[winner].tally())}!")
         self.setup()
         return
 
     def show_scores(self):
         print(f"The scores are:")
-        for i, player in enumerate(self.players):
-            print(f"Player {i+1}: {player.get_points()}")
+        for player in self.players:
+            print(f"{player.name}: {player.get_points()}")
 
     def knock(self, player):
         if not self.knocked:
@@ -160,4 +186,5 @@ class Game_31(Game):
 
 def start_game():
     game = Game_31()
+
 start_game()
