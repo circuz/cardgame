@@ -95,6 +95,8 @@ class Game_31(Game):
     def __init__(self):
         print("New game started.") 
         
+        # TODO?: give each player a target and do the strats the same way but with self.target instead of passing a lambda function
+
         player1_strat = lambda self, discard : game_31_knock_over_x.strategy(self, discard,20)
         player2_strat = lambda self, discard : game_31_knock_over_x.strategy(self, discard,20)
         player3_strat = lambda self, discard : game_31_knock_over_x.strategy(self, discard,20)
@@ -102,8 +104,7 @@ class Game_31(Game):
         player1 = Player(self, player1_strat, "Måns")
         player2 = Player(self, player2_strat, "August")
         player3 = Player(self, player3_strat, "Jesaja")
-        player4 = Player(self, player4_strat)
-        self.players = [player1, player2, player3, player4]
+        self.players = [player1, player2, player3, ]
         
         self.setup()
         

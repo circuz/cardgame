@@ -1,16 +1,16 @@
 # Knock over x or toss worst card in worst suit :)
 from cardgame_setup import SUITS
 
-def strategy(self, discard, x):
+def strategy(self, discard, target):
 
     # bestranks is the highest total suit value
     bestranks = max(self.tally())
-    if bestranks > x:
+    if bestranks > target:
         self.knock()
     else:
         disccard = discard.peek()
         # Would it be of benefit at all to pick up this card? But is it good enough? 
-        if bestranks < max(self.tally([disccard])) and (disccard.rank > (1/3 * x)):
+        if bestranks < max(self.tally([disccard])) and (disccard.rank > (1/3 * target)):
             self.pull(discard=True)
         else:
             self.pull(discard=False)
@@ -39,3 +39,4 @@ def strategy(self, discard, x):
         self.drop(self.hand[worstcard]) 
         #self.show()
     return
+
