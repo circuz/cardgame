@@ -12,8 +12,11 @@ class Player:
         self.hand = []
         self.strategy = strategy
 
-    def pull(self):
-        self.hand.append(self.game.deck.draw())
+    def pull(self, pile = False):
+        if pile:
+            self.hand.append(self.game.pile.get())
+        else:
+            self.hand.append(self.game.deck.draw())
         return
     
     def drop(self, card):
@@ -45,9 +48,9 @@ class Player:
             print(f"{card.rank} of {SUITS[card.suit]}")
         print("-~=\PLAYER =~-")
 
-    def tally(self):
+    def tally(self, extra_cards = []):
         sums = [-1,0,0,0,0]
-        for card in self.hand:
+        for card in self.hand + extra_cards:
             if card.rank in range(2,10):
                 sums[card.suit] += card.rank
             elif card.rank > 10:
@@ -68,6 +71,9 @@ class Pile:
     def get(self):
         return self.cards.pop()
 
+    def peek(self):
+        return self.cards[-1]
+
     def show(self):
         print("-~= PILE =~-")
         print(f"{self.cards[-1].rank} of {SUITS[self.cards[-1].suit]}")
@@ -79,17 +85,18 @@ class Game_31(Game):
         print("New game started.") 
         
         player1 = Player(self, game_31_knock_over_20.strategy)
-        player2 = Player(self, game_31_knock_over_20_toss_best.strategy)
+        player2 = Player(self, game_31_knock_over_20.strategy)
         self.players = [player1, player2]
         
         self.setup()
         
         while self.players[1].get_points() < 100:
-             self.take_turns() 
+            self.take_turns() 
+            self.show_scores()
         return
 
     def setup(self):
-        print("New round started.")
+        #print("New round started.")
         self.knocked = False
 
         for player in self.players:
@@ -137,12 +144,14 @@ class Game_31(Game):
                 tally = max(player.tally())
         self.players[winner].give_point()
         
-        print(f"Player {winner+1} wins with a score of {max(self.players[winner].tally())}!")
-        print(f"The scores are now:")
-        for i, player in enumerate(self.players):
-            print(f"Player {i+1}: {player.get_points()}")
+        #print(f"Player {winner+1} wins with a score of {max(self.players[winner].tally())}!")
         self.setup()
         return
+
+    def show_scores(self):
+        print(f"The scores are:")
+        for i, player in enumerate(self.players):
+            print(f"Player {i+1}: {player.get_points()}")
 
     def knock(self, player):
         if not self.knocked:

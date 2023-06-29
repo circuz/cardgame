@@ -1,6 +1,10 @@
 # Knock over 20 or toss worst card in worst suit :)
 def strategy(self, pile):
-    self.pull()
+
+    if max(self.tally()) < max(self.tally([pile.peek()])):
+        self.pull(pile=True)
+    else:
+        self.pull(pile=False)
 
     tally = self.tally()
     worsttall = 40
